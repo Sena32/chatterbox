@@ -1,38 +1,53 @@
-/**
- * ConversationView — lista de mensagens de uma conversa.
- *
- * Estado: PLACEHOLDER (boilerplate)
- * Spec: specs/001-iniciar-conversa/tasks.md — Task T13
- * Skill: .cursor/skills/react-hooks-separation/SKILL.md
- *
- * Regras:
- *  - Apresentação pura: recebe messages via props.
- *  - Scroll automático para a última mensagem (único useState local permitido:
- *    ref para o container — isso é UI, não negócio).
- *  - Não faz fetch.
- *
- * TODO (spec 001 task T13): implementar renderização com MessageBubble.
- * TODO (spec 003 task T9): aceitar streamingMessage prop opcional.
- */
+import { useEffect, useRef } from "react"
 
 import type { Message } from "../../types"
+import { MessageBubble } from "./MessageBubble"
 
 interface Props {
   messages: Message[]
-  /** Mensagem parcial durante streaming (spec 003, opcional) */
   streamingMessage?: string
 }
 
 export function ConversationView({ messages, streamingMessage }: Props) {
-  // TODO: implementar — ver spec 001 task T13
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, streamingMessage])
+
+  if (messages.length === 0 && !streamingMessage) {
+    return (
+      <div
+        data-testid="conversation-view"
+        className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-surface/60 bg-surface/10 px-4 py-8"
+      >
+        <p className="text-center text-sm text-ink/60">
+          Nenhuma mensagem ainda. Envie a primeira!
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div data-testid="conversation-view">
+    <div
+      data-testid="conversation-view"
+      className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto rounded-xl bg-surface/10 p-4"
+    >
       {messages.map((msg) => (
-        <div key={msg.id}>{/* TODO: usar MessageBubble */}{msg.content}</div>
+        <MessageBubble key={msg.id} message={msg} />
       ))}
+
       {streamingMessage && (
-        <div data-testid="streaming-bubble">{streamingMessage}</div>
+        <div
+          data-testid="streaming-bubble"
+          className="mr-auto max-w-[80%] rounded-2xl bg-surface/30 px-4 py-3 text-ink"
+        >
+          <span className="mb-1 block text-xs font-medium text-accent">IA</span>
+          <p className="text-sm text-ink/80">{streamingMessage}</p>
+        </div>
       )}
+
+      <div ref={bottomRef} />
     </div>
   )
 }

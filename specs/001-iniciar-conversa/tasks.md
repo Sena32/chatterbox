@@ -23,13 +23,13 @@
 
 ## Frontend
 
-- [ ] T10. `services/conversationApi.ts` com as 3 chamadas HTTP (sem estado,
+- [x] T10. `services/conversationApi.ts` com as 3 chamadas HTTP (sem estado,
       sem JSX).
-- [ ] T11. `hooks/useConversation.ts` com estado (`conversation`, `messages`,
+- [x] T11. `hooks/useConversation.ts` com estado (`conversation`, `messages`,
       `isLoading`, `error`) e funções `startConversation`, `sendMessage`.
-- [ ] T12. `components/Chat/MessageBubble.tsx` (apresentação pura, estilo por
+- [x] T12. `components/Chat/MessageBubble.tsx` (apresentação pura, estilo por
       `sender`).
-- [ ] T13. `components/Chat/ConversationView.tsx` (lista mensagens).
-- [ ] T14. `components/Chat/MessageInput.tsx` (input controlado + callback).
-- [ ] T15. `pages/ChatPage.tsx` compondo tudo via `useConversation`.
-- [ ] T16. Testar manualmente: reload da página mantém histórico.
+- [x] T13. `components/Chat/ConversationView.tsx` (lista mensagens).
+- [x] T14. `components/Chat/MessageInput.tsx` (input controlado + callback).
+- [x] T15. `pages/ChatPage.tsx` compondo tudo via `useConversation`.
+- [x] T16. Testar manualmente: reload da página mantém histórico.

@@ -1,25 +1,9 @@
-/**
- * useConversation — hook central para estado e ações de uma conversa.
- *
- * Estado: PLACEHOLDER (boilerplate)
- * Spec: specs/001-iniciar-conversa/tasks.md — Task T11
- *       specs/002-ia-responde-com-objetivo/tasks.md — Task T10
- * Skill: .cursor/skills/react-hooks-separation/SKILL.md
- *
- * Responsabilidades:
- *  - Manter estado: conversation, messages, isLoading, error
- *  - Expor ações: startConversation(), sendMessage(content)
- *  - Consumir conversationApi (service) — nunca fetch direto
- *  - NÃO renderizar JSX
- *
- * TODO (spec 001 task T11):
- *  - Implementar startConversation()
- *  - Implementar sendMessage(content), refletindo msg do user e da IA no estado
- * TODO (spec 002 task T10):
- *  - Tratar estado de erro quando IA falhar
- */
+import { useCallback, useEffect, useState } from "react"
 
+import * as conversationApi from "../services/conversationApi"
 import type { Conversation, Message } from "../types"
+
+const STORAGE_KEY = "chatterbox:conversationId"
 
 export interface UseConversationReturn {
   conversation: Conversation | null
@@ -31,6 +15,74 @@ export interface UseConversationReturn {
 }
 
 export function useConversation(): UseConversationReturn {
-  // TODO: implementar — ver spec 001 task T11
-  throw new Error("useConversation not implemented yet — ver spec 001 task T11")
+  const [conversation, setConversation] = useState<Conversation | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const messages = conversation?.messages ?? []
+
+  const loadConversation = useCallback(async (id: string) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const data = await conversationApi.getConversation(id)
+      setConversation(data)
+      localStorage.setItem(STORAGE_KEY, data.id)
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+      setConversation(null)
+      setError("Não foi possível carregar a conversa.")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const savedId = localStorage.getItem(STORAGE_KEY)
+    if (savedId) {
+      void loadConversation(savedId)
+    }
+  }, [loadConversation])
+
+  const startConversation = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const data = await conversationApi.createConversation()
+      setConversation(data)
+      localStorage.setItem(STORAGE_KEY, data.id)
+    } catch {
+      setError("Não foi possível iniciar a conversa.")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!conversation) return
+
+      setIsLoading(true)
+      setError(null)
+      try {
+        await conversationApi.sendMessage(conversation.id, content)
+        const updated = await conversationApi.getConversation(conversation.id)
+        setConversation(updated)
+      } catch {
+        setError("Não foi possível enviar a mensagem.")
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [conversation],
+  )
+
+  return {
+    conversation,
+    messages,
+    isLoading,
+    error,
+    startConversation,
+    sendMessage,
+  }
 }

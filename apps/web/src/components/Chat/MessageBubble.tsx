@@ -1,18 +1,3 @@
-/**
- * MessageBubble — exibe uma única mensagem com estilo por remetente.
- *
- * Estado: PLACEHOLDER (boilerplate)
- * Spec: specs/001-iniciar-conversa/tasks.md — Task T12
- * Skill: .cursor/skills/react-hooks-separation/SKILL.md
- *
- * Regras:
- *  - Apresentação pura: recebe props, não tem estado de negócio.
- *  - Não faz fetch, não usa useEffect de rede.
- *  - Estilo visualmente distinto para sender="user" vs sender="ai" (requisito b).
- *
- * TODO (spec 001 task T12): implementar o componente.
- */
-
 import type { Message } from "../../types"
 
 interface Props {
@@ -20,12 +5,26 @@ interface Props {
 }
 
 export function MessageBubble({ message }: Props) {
-  // TODO: implementar — ver spec 001 task T12
+  const isUser = message.sender === "user"
+
   return (
-    <div data-sender={message.sender} data-testid="message-bubble">
-      {/* placeholder */}
-      <strong>{message.sender === "user" ? "Você" : "IA"}:</strong>{" "}
-      {message.content}
+    <div
+      data-testid="message-bubble"
+      data-sender={message.sender}
+      className={
+        isUser
+          ? "ml-auto max-w-[80%] rounded-2xl bg-brand/10 px-4 py-3 text-ink"
+          : "mr-auto max-w-[80%] rounded-2xl bg-surface/30 px-4 py-3 text-ink"
+      }
+    >
+      <span
+        className={`mb-1 block text-xs font-medium ${
+          isUser ? "text-brand" : "text-accent"
+        }`}
+      >
+        {isUser ? "Você" : "IA"}
+      </span>
+      <p className="whitespace-pre-wrap text-sm">{message.content}</p>
     </div>
   )
 }
