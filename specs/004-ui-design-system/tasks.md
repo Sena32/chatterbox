@@ -9,7 +9,7 @@
 
 ## Frontend — layout global
 
-- [ ] T4. Instalar e configurar Tailwind CSS, PostCSS, Roboto e Heroicons.
-- [ ] T5. Criar `src/index.css` com directives e estilos base.
-- [ ] T6. Criar `components/Layout/AppLayout.tsx` (header + main card).
-- [ ] T7. Integrar `AppLayout` em `ChatPage` e `main.tsx` (estrutura apenas).
+- [x] T4. Instalar e configurar Tailwind CSS, PostCSS, Roboto e Heroicons.
+- [x] T5. Criar `src/index.css` com directives e estilos base.
+- [x] T6. Criar `components/Layout/AppLayout.tsx` (header + main card).
+- [x] T7. Integrar `AppLayout` em `ChatPage` e `main.tsx` (estrutura apenas).
