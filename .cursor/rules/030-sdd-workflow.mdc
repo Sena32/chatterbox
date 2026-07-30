@@ -46,3 +46,4 @@ qualquer código em `apps/`, siga este fluxo:
 - `001-iniciar-conversa` — requisitos (a) e (b).
 - `002-ia-responde-com-objetivo` — requisitos (c) e (d).
 - `003-stream-mensagens-websocket` — requisito opcional (e).
+- `004-ui-design-system` — tokens visuais, Tailwind, layout global.

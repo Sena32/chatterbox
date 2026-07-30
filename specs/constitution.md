@@ -49,6 +49,9 @@ controllers  →  services  →  repositories  →  models
   `useChatSocket`).
 - `services` (frontend): isolam chamadas HTTP/WebSocket. Não importam React.
 - Nenhum componente deve importar diretamente `fetch`/`axios`/`WebSocket`.
+- **Design system** (`specs/004-ui-design-system/`): Tailwind CSS, fonte
+  Roboto, paleta (`brand`, `accent`, `surface`, `ink`), bordas arredondadas
+  suaves e Heroicons outline. Toda estilização visual segue essa spec.
 
 ## 5. Objetivo da IA nesta POC é explícito e configurável
 

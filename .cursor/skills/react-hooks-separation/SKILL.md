@@ -66,9 +66,17 @@ interface Props {
 export function MessageBubble({ message }: Props) {
   const isUser = message.sender === "user"
   return (
-    <div className={isUser ? "bubble bubble--user" : "bubble bubble--ai"}>
-      <span className="bubble__sender">{isUser ? "Você" : "IA"}</span>
-      <p>{message.content}</p>
+    <div
+      className={
+        isUser
+          ? "ml-auto max-w-[80%] rounded-2xl bg-brand/10 px-4 py-3 text-ink"
+          : "mr-auto max-w-[80%] rounded-2xl bg-surface/30 px-4 py-3 text-ink"
+      }
+    >
+      <span className="mb-1 block text-xs font-medium text-ink/60">
+        {isUser ? "Você" : "IA"}
+      </span>
+      <p className="text-sm">{message.content}</p>
     </div>
   )
 }

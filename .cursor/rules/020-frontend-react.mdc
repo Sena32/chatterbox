@@ -39,6 +39,27 @@ services/    → chamadas HTTP/WebSocket isoladas (sem React)
   `Message`) vivem em `src/types/` e são compartilhados entre `services`,
   `hooks` e `components`.
 
+## Estilo e design system
+
+Spec de referência: `specs/004-ui-design-system/`. Skill:
+`.cursor/skills/frontend-design-system/SKILL.md`.
+
+- **Tailwind CSS** é a única forma de estilização nesta POC. Não usar CSS
+  modules, styled-components ou inline `style={{}}` salvo exceções justificadas.
+- **Fonte:** Roboto (`font-sans`), carregada via Google Fonts.
+- **Paleta de tokens Tailwind:**
+  - `brand` — `#2b9eb3` (primária)
+  - `accent` — `#85cc9c` (secundária)
+  - `surface` — `#bcd9a0` (fundos)
+  - `ink` — `#484848` (texto)
+- **Bordas:** arredondamento suave (`rounded-xl`, `rounded-2xl`, `rounded-3xl`).
+  Evitar cantos retos em containers principais.
+- **Ícones:** `@heroicons/react`, variante **outline** (`/24/outline`).
+- **Layout global:** `components/Layout/AppLayout.tsx` envolve todas as páginas.
+  Páginas compõem `AppLayout` + conteúdo; não duplicar header/shell.
+- Componentes de apresentação usam classes Tailwind; tokens semânticos (`brand`,
+  `accent`, etc.), nunca hex hardcoded espalhado no JSX.
+
 ## Testes
 
 - Hooks customizados devem ser testáveis isoladamente (ex: `@testing-library/react-hooks`

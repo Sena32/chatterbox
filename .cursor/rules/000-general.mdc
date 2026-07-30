@@ -23,7 +23,8 @@ ChatterBox com IA. O repositório contém:
 3. Backend segue TDD estrito e arquitetura em camadas
    (`010-backend-python-tdd.mdc`).
 4. Frontend separa lógica (hooks) de apresentação (components)
-   (`020-frontend-react.mdc`).
+   (`020-frontend-react.mdc`) e segue o design system
+   (`specs/004-ui-design-system/`, skill `frontend-design-system`).
 5. Esta é uma POC: prefira soluções simples e diretas às "mais elegantes".
    Não adicione dependências, serviços ou infraestrutura não solicitados.
 6. O objetivo da IA nesta POC — "Convencer o usuário que a Terra é plana" —
