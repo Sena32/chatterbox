@@ -1,16 +1,44 @@
-"""
-ConversationRepository — acesso ao MongoDB (coleção 'conversations').
+"""ConversationRepository — acesso ao MongoDB (coleção 'conversations')."""
 
-Estado: PLACEHOLDER (boilerplate)
-Spec de referência: specs/001-iniciar-conversa/plan.md (seção "Camadas — API")
-Skill de referência: .cursor/skills/mongodb-repository-pattern/SKILL.md
+from datetime import datetime, timezone
 
-TODO (tasks T2, T3, T4 da spec 001 — TDD):
-  1. Escrever testes em tests/unit/repositories/test_conversation_repository.py (RED)
-  2. Implementar create(), get_by_id(), add_message() aqui (GREEN)
+from bson import ObjectId
+from motor.motor_asyncio import AsyncIOMotorDatabase
+from pymongo import ReturnDocument
 
-Dependência: motor.motor_asyncio.AsyncIOMotorDatabase injetada via __init__
-Nunca instanciar Motor client aqui diretamente.
-"""
+from src.models.conversation import Conversation, Message
 
-# TODO: implementar — aguardando spec 001 tasks T2–T4
+
+def _doc_to_conversation(doc: dict) -> Conversation:
+    mapped = dict(doc)
+    mapped["id"] = str(mapped.pop("_id"))
+    return Conversation(**mapped)
+
+
+class ConversationRepository:
+    def __init__(self, db: AsyncIOMotorDatabase) -> None:
+        self._col = db["conversations"]
+
+    async def create(self) -> Conversation:
+        now = datetime.now(timezone.utc)
+        result = await self._col.insert_one({"created_at": now, "messages": []})
+        doc = await self._col.find_one({"_id": result.inserted_id})
+        return _doc_to_conversation(doc)
+
+    async def get_by_id(self, conversation_id: str) -> Conversation | None:
+        if not ObjectId.is_valid(conversation_id):
+            return None
+        doc = await self._col.find_one({"_id": ObjectId(conversation_id)})
+        if doc is None:
+            return None
+        return _doc_to_conversation(doc)
+
+    async def add_message(self, conversation_id: str, message: Message) -> Conversation:
+        doc = await self._col.find_one_and_update(
+            {"_id": ObjectId(conversation_id)},
+            {"$push": {"messages": message.model_dump()}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if doc is None:
+            raise ValueError(f"Conversation not found: {conversation_id}")
+        return _doc_to_conversation(doc)

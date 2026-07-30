@@ -4,11 +4,11 @@
 
 - [x] T1. Escrever teste de schema para `Message` e `Conversation` (falha) →
       criar `models/conversation.py` (passa).
-- [ ] T2. Escrever teste de `ConversationRepository.create` (falha) →
+- [x] T2. Escrever teste de `ConversationRepository.create` (falha) →
       implementar (passa).
-- [ ] T3. Escrever teste de `ConversationRepository.get_by_id` (falha) →
+- [x] T3. Escrever teste de `ConversationRepository.get_by_id` (falha) →
       implementar (passa).
-- [ ] T4. Escrever teste de `ConversationRepository.add_message` (falha) →
+- [x] T4. Escrever teste de `ConversationRepository.add_message` (falha) →
       implementar (passa).
 - [ ] T5. Escrever teste de `ConversationService.start_conversation` (mock do
       repository) → implementar.
