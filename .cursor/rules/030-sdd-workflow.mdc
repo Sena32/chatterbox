@@ -1,0 +1,48 @@
+---
+description: Fluxo obrigatório de Spec-Driven Development (SDD) para qualquer alteração
+alwaysApply: true
+---
+
+# Spec-Driven Development (SDD) — Fluxo Obrigatório
+
+Este projeto usa `specs/` como fonte da verdade. Antes de gerar ou alterar
+qualquer código em `apps/`, siga este fluxo:
+
+## 1. Localizar a spec
+
+- Verifique se existe `specs/NNN-nome-da-feature/` relacionada ao pedido.
+- Leia, nesta ordem: `specs/constitution.md` → `spec.md` da feature →
+  `plan.md` → `tasks.md`.
+- Se a spec não existir, **não implemente diretamente**. Responda propondo a
+  criação de uma nova pasta `specs/NNN-nome-da-feature/` com os três
+  arquivos, seguindo o padrão das specs existentes, e peça confirmação antes
+  de codificar — a menos que o pedido seja explicitamente uma correção
+  pontual de bug (não uma feature nova).
+
+## 2. Implementar seguindo `tasks.md`
+
+- Siga a ordem das tasks. Ao concluir uma task, marque o checkbox
+  correspondente em `tasks.md` (`- [ ]` → `- [x]`).
+- Cada task de backend deve seguir TDD (`010-backend-python-tdd.mdc`).
+- Cada task de frontend deve respeitar a separação hooks/components
+  (`020-frontend-react.mdc`).
+
+## 3. Divergências
+
+- Se durante a implementação você perceber que o `plan.md` está desatualizado
+  ou incompleto frente à realidade do código, **atualize o `plan.md`** como
+  parte da mesma alteração — não deixe a spec e o código divergirem
+  silenciosamente.
+- Mudanças de escopo (ex: adicionar um requisito não pedido pelo arquiteto)
+  não devem ser feitas sem antes registrar em uma spec.
+
+## 4. Ao responder ao usuário
+
+- Comece indicando qual spec (`NNN-nome-da-feature`) está sendo trabalhada.
+- Ao final, liste quais tasks de `tasks.md` foram concluídas.
+
+## Specs existentes nesta POC
+
+- `001-iniciar-conversa` — requisitos (a) e (b).
+- `002-ia-responde-com-objetivo` — requisitos (c) e (d).
+- `003-stream-mensagens-websocket` — requisito opcional (e).

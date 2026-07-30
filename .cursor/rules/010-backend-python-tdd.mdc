@@ -1,0 +1,60 @@
+---
+description: Regras para código em apps/api — TDD e arquitetura em camadas
+globs:
+  - "apps/api/**/*.py"
+alwaysApply: false
+---
+
+# Backend — Python / FastAPI / MongoDB
+
+## TDD estrito (obrigatório)
+
+Para toda mudança em `services/` ou `repositories/`:
+
+1. Escreva (ou peça para escrever) o teste que descreve o comportamento
+   desejado **antes** da implementação. O teste deve falhar (red).
+2. Implemente o mínimo necessário para o teste passar (green).
+3. Refatore mantendo os testes verdes (refactor).
+4. Nunca gere implementação e teste no mesmo passo sem rodar o teste
+   primeiro contra o código antigo/inexistente para confirmar que falha.
+
+Localização dos testes espelha `src/`:
+`src/services/conversation_service.py` → `tests/unit/services/test_conversation_service.py`.
+
+## Arquitetura em camadas — respeitar sempre
+
+```
+controllers/  → services/  → repositories/  → models/
+```
+
+- `controllers/*.py`: **apenas** roteamento FastAPI (`APIRouter`), validação
+  de entrada via Pydantic, tradução de exceções de domínio em `HTTPException`.
+  Nunca importe `repositories` diretamente aqui.
+- `services/*.py`: regra de negócio e orquestração. Recebe `repository`
+  (e outras dependências como `AIService`) via injeção de dependência
+  (parâmetro de `__init__` ou `Depends`), nunca instancia diretamente dentro
+  do método.
+- `repositories/*.py`: única camada com `motor`/queries Mongo. Métodos
+  retornam `models` (nunca dicts crus do Mongo para fora da camada).
+- `models/*.py`: Pydantic `BaseModel`. Sem métodos de negócio, sem I/O.
+
+## Testabilidade
+
+- Toda dependência externa (Mongo, provedor de IA) deve ser injetável e
+  mockável nos testes unitários. Use `Protocol`/interfaces quando fizer
+  sentido trocar a implementação (ex: `AIProvider`).
+- Testes unitários de `service` **não** devem tocar o Mongo real — mocke o
+  `repository`.
+- Testes de `repository` podem usar um Mongo em memória/mock
+  (`mongomock`/`mongomock-motor`) ou um container efêmero — nunca o Mongo de
+  desenvolvimento.
+- Testes de integração (`tests/integration/`) sobem a app FastAPI completa
+  (`httpx.AsyncClient`) contra um banco de teste isolado.
+
+## Convenções
+
+- Async em toda a stack (FastAPI + Motor são async-first).
+- Erros de domínio são exceções Python específicas (ex:
+  `ConversationNotFoundError`), traduzidas para HTTP apenas no `controller`.
+- Configuração centralizada em `core/config.py` (`pydantic-settings`) —
+  nunca ler `os.environ` diretamente fora dali.

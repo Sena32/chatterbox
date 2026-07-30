@@ -1,0 +1,72 @@
+name: chatterbox
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: chatterbox-mongo
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-chatterbox}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-chatterbox}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-chatterbox}
+    volumes:
+      - mongo_data:/data/db
+      - ./infra/mongo-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chatterbox-net
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: chatterbox-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-chatterbox}:${MONGO_ROOT_PASSWORD:-chatterbox}@mongo:27017
+      MONGO_DB_NAME: ${MONGO_DB_NAME:-chatterbox}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./apps/api:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - chatterbox-net
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: chatterbox-web
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+      VITE_WS_BASE_URL: ${VITE_WS_BASE_URL:-ws://localhost:8000}
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - chatterbox-net
+    command: npm run dev -- --host 0.0.0.0
+
+networks:
+  chatterbox-net:
+    driver: bridge
+
+volumes:
+  mongo_data:

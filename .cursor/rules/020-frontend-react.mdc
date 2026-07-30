@@ -1,0 +1,55 @@
+---
+description: Regras para código em apps/web — componentes, hooks e serviços
+globs:
+  - "apps/web/**/*.tsx"
+  - "apps/web/**/*.ts"
+alwaysApply: false
+---
+
+# Frontend — ReactJS
+
+## Separação estrita: lógica x visualização
+
+```
+pages/       → compõem components + hooks (pouca lógica própria)
+components/  → apresentação pura (props in, callbacks out)
+hooks/       → toda lógica de estado/efeitos/orquestração
+services/    → chamadas HTTP/WebSocket isoladas (sem React)
+```
+
+- **Componentes nunca fazem fetch/WebSocket diretamente.** Se um componente
+  precisa de dados ou precisa disparar uma ação assíncrona, ele recebe isso
+  via props ou usa um hook customizado — nunca `fetch`/`axios`/`WebSocket`
+  inline dentro do componente.
+- **Componentes não têm `useState` de regra de negócio.** `useState` local
+  para UI efêmera (ex: campo de input controlado, dropdown aberto/fechado) é
+  aceitável dentro do próprio componente; estado que representa dados de
+  domínio (conversas, mensagens, status de conexão) vive em hooks
+  customizados.
+- **Um hook, uma responsabilidade.** Ex: `useConversation` cuida do CRUD de
+  conversa/mensagens; `useChatSocket` cuida da conexão WebSocket. Composição
+  de hooks é preferível a um hook "deus" fazendo tudo.
+- **`services/*.ts` não importam React.** São funções puras/classes que
+  encapsulam `fetch`/`WebSocket` e retornam dados tipados. Hooks consomem
+  `services`, nunca o contrário.
+
+## Tipagem
+
+- TypeScript em todo o projeto. Tipos de domínio (ex: `Conversation`,
+  `Message`) vivem em `src/types/` e são compartilhados entre `services`,
+  `hooks` e `components`.
+
+## Testes
+
+- Hooks customizados devem ser testáveis isoladamente (ex: `@testing-library/react-hooks`
+  ou `renderHook` do RTL), mockando o `services` correspondente.
+- Componentes de apresentação são testados via render + props, sem mock de
+  rede (porque não deveriam fazer rede).
+
+## O que evitar
+
+- `useEffect` com fetch direto dentro de um componente de apresentação.
+- Duplicar chamadas de API em mais de um lugar — sempre via `services/`.
+- Prop drilling excessivo — preferir um hook de contexto (`context/`) quando
+  o estado precisar ser compartilhado por muitos componentes (ex: conversa
+  ativa).

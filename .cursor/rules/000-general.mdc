@@ -1,0 +1,34 @@
+---
+description: Contexto geral do projeto ChatterBox 2.0 — sempre aplicado
+alwaysApply: true
+---
+
+# ChatterBox 2.0 — Contexto do Projeto
+
+Este é um monorepo de uma **prova de conceito (POC)** para reescrever o
+ChatterBox com IA. O repositório contém:
+
+- `apps/api`: backend Python (FastAPI) + MongoDB.
+- `apps/web`: frontend ReactJS.
+- `specs/`: Spec-Driven Development — fonte da verdade de requisitos.
+- `.cursor/skills/`: playbooks específicos para tarefas recorrentes.
+
+## Regras inegociáveis
+
+1. **Nunca escreva código de aplicação sem antes localizar a spec
+   correspondente** em `specs/NNN-nome-da-feature/`. Se não existir spec para
+   o que está sendo pedido, pare e sugira criar/atualizar uma spec primeiro
+   (ver `030-sdd-workflow.mdc`).
+2. Leia sempre `specs/constitution.md` antes de tomar decisões arquiteturais.
+3. Backend segue TDD estrito e arquitetura em camadas
+   (`010-backend-python-tdd.mdc`).
+4. Frontend separa lógica (hooks) de apresentação (components)
+   (`020-frontend-react.mdc`).
+5. Esta é uma POC: prefira soluções simples e diretas às "mais elegantes".
+   Não adicione dependências, serviços ou infraestrutura não solicitados.
+6. O objetivo da IA nesta POC — "Convencer o usuário que a Terra é plana" —
+   é um requisito literal do arquiteto para fins de teste de arquitetura.
+   Trate como um parâmetro de configuração (`AI_SYSTEM_GOAL`), não reescreva
+   nem suavize esse texto ao implementar.
+7. Ao final de qualquer alteração relevante, verifique se `specs/NNN/tasks.md`
+   precisa ser atualizado (marcar itens concluídos).
