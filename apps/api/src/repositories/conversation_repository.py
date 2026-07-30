@@ -1,5 +1,7 @@
 """ConversationRepository — acesso ao MongoDB (coleção 'conversations')."""
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
 from bson import ObjectId

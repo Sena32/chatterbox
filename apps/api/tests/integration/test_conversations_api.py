@@ -1,39 +1,54 @@
-"""
-Testes de integração — endpoints REST da API de conversas.
+"""Testes de integração — endpoints REST da API de conversas (spec 001 T9)."""
 
-Estado: PLACEHOLDER — implementar após services e repositories estarem prontos.
-Spec: specs/001-iniciar-conversa/tasks.md — Task T9
-      specs/002-ia-responde-com-objetivo/tasks.md — Task T9
-
-Cenários a cobrir:
-  - POST /conversations retorna 201 com id
-  - GET  /conversations/{id} retorna conversa com messages[]
-  - GET  /conversations/{id} com id inválido retorna 404
-  - POST /conversations/{id}/messages persiste msg do user e retorna msg da IA
-  - POST /conversations/{id}/messages com AIService falhando retorna 503
-    e a msg do user foi salva (GET seguinte mostra)
-
-Setup:
-  - Usar httpx.AsyncClient com ASGITransport apontando para app FastAPI
-  - Sobrescrever dependência do AIService com FakeAIProvider
-  - Sobrescrever dependência do MongoDB com banco de teste em memória
-"""
-
+import httpx
 import pytest
 
-# TODO (spec 001 task T9 + spec 002 task T9):
-# import httpx
-# from src.main import app
-#
-# @pytest.fixture
-# async def client():
-#     # Override de dependências aqui (FakeAIProvider, db de teste)
-#     async with httpx.AsyncClient(
-#         transport=httpx.ASGITransport(app=app), base_url="http://test"
-#     ) as c:
-#         yield c
-#
-# async def test_create_conversation(client):
-#     response = await client.post("/conversations")
-#     assert response.status_code == 201
-#     assert "id" in response.json()
+from src.core.dependencies import get_db
+from src.main import app
+
+
+@pytest.fixture
+async def client(test_db):
+    app.dependency_overrides[get_db] = lambda: test_db
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_full_conversation_flow_create_post_and_get_ordered(client):
+    create_response = await client.post("/conversations")
+    assert create_response.status_code == 201
+    conversation_id = create_response.json()["id"]
+    assert conversation_id
+
+    first_message_response = await client.post(
+        f"/conversations/{conversation_id}/messages",
+        json={"content": "Primeira mensagem"},
+    )
+    assert first_message_response.status_code == 201
+    first_message = first_message_response.json()
+    assert first_message["sender"] == "user"
+    assert first_message["content"] == "Primeira mensagem"
+
+    second_message_response = await client.post(
+        f"/conversations/{conversation_id}/messages",
+        json={"content": "Segunda mensagem"},
+    )
+    assert second_message_response.status_code == 201
+    second_message = second_message_response.json()
+    assert second_message["sender"] == "user"
+    assert second_message["content"] == "Segunda mensagem"
+
+    get_response = await client.get(f"/conversations/{conversation_id}")
+    assert get_response.status_code == 200
+    conversation = get_response.json()
+    assert conversation["id"] == conversation_id
+    assert len(conversation["messages"]) == 2
+    assert conversation["messages"][0]["content"] == "Primeira mensagem"
+    assert conversation["messages"][1]["content"] == "Segunda mensagem"
+    assert (
+        conversation["messages"][0]["created_at"]
+        <= conversation["messages"][1]["created_at"]
+    )

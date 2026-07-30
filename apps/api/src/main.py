@@ -1,30 +1,35 @@
-"""
-ChatterBox API — Ponto de entrada da aplicação FastAPI.
+"""ChatterBox API — Ponto de entrada da aplicação FastAPI."""
 
-Estado: PLACEHOLDER (boilerplate)
-Spec de referência: specs/001-iniciar-conversa, specs/002-ia-responde-com-objetivo
-
-TODO (seguir a ordem das tasks em specs/001/tasks.md e specs/002/tasks.md):
-  - Implementar models, repositories e services (TDD)
-  - Registrar routers de conversas (ConversationController)
-  - Registrar endpoint WebSocket (spec 003, opcional)
-  - Configurar lifespan para conexão com MongoDB
-"""
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
 
-# TODO: importar e registrar routers quando implementados
-# from src.controllers.conversation_controller import router as conversation_router
+from src.controllers.conversation_controller import router as conversation_router
+from src.core.config import settings
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    client = AsyncIOMotorClient(settings.mongo_uri)
+    app.state.mongo_client = client
+    app.state.db = client[settings.mongo_db_name]
+    yield
+    client.close()
+
 
 app = FastAPI(
     title="ChatterBox 2.0 API",
     description="POC — Conversas com IA (objetivo: convencer que a Terra é plana).",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
-# TODO: app.include_router(conversation_router, prefix="/conversations", tags=["conversations"])
-# TODO: registrar endpoint WS: app.add_api_websocket_route(...)
-# TODO: lifespan com conexão Motor ao MongoDB
+app.include_router(
+    conversation_router,
+    prefix="/conversations",
+    tags=["conversations"],
+)
 
 
 @app.get("/health", tags=["infra"])

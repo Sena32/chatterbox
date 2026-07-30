@@ -10,15 +10,15 @@
       implementar (passa).
 - [x] T4. Escrever teste de `ConversationRepository.add_message` (falha) →
       implementar (passa).
-- [ ] T5. Escrever teste de `ConversationService.start_conversation` (mock do
+- [x] T5. Escrever teste de `ConversationService.start_conversation` (mock do
       repository) → implementar.
-- [ ] T6. Escrever teste de `ConversationService.get_conversation` (não
+- [x] T6. Escrever teste de `ConversationService.get_conversation` (não
       encontrado deve levantar erro de domínio) → implementar.
-- [ ] T7. Escrever teste de `ConversationService.post_user_message` →
+- [x] T7. Escrever teste de `ConversationService.post_user_message` →
       implementar.
-- [ ] T8. Criar `controllers/conversation_controller.py` com as 3 rotas,
+- [x] T8. Criar `controllers/conversation_controller.py` com as 3 rotas,
       registrar no `main.py`.
-- [ ] T9. Teste de integração cobrindo o fluxo completo (criar → postar
+- [x] T9. Teste de integração cobrindo o fluxo completo (criar → postar
       mensagem → buscar e conferir ordenação).
 
 ## Frontend
