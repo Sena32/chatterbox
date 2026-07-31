@@ -9,7 +9,6 @@ from src.models.conversation import Message
 
 class AnthropicProvider:
     def __init__(self, gcp_project_id: str,region: str, model: str) -> None:
-        print("console init anthropic provider", gcp_project_id, region, model)
         self._client = AnthropicVertex(project_id=gcp_project_id,region=region)
         self._model = model
 

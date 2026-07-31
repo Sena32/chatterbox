@@ -7,14 +7,12 @@ from src.models.conversation import Message
 class GeminiProvider:
     def __init__(self, gcp_project_id: str, gcp_region: str, model: str) -> None:
         # O cliente 'genai.Client' lê automaticamente as credenciais do seu Docker
-        print(f"=== DEBUG ===: Inicializando GeminiProvider com o modelo: {model}")
         self._client = genai.Client(vertexai=True,project=gcp_project_id, location=gcp_region)
         self._model = model
 
     async def generate_reply(
         self, system_prompt: str, history: list[Message],
     ) -> str:
-        print(f"=== DEBUG ===: Enviando histórico de {len(history)} mensagens para o Gemini...")
 
         # Converte o histórico de mensagens para o formato aceito pelo Gemini
         gemini_contents = [
@@ -38,5 +36,4 @@ class GeminiProvider:
             config=config
         )
 
-        print("=== DEBUG ===: Resposta recebida do Gemini com sucesso.")
         return response.text
