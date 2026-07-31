@@ -76,6 +76,8 @@ Ver `.cursor/rules/020-frontend-react.mdc`.
 
 ## Subindo a infraestrutura local
 
+**Adicionar o arquivo google-credentials.json na pasta /apps/api (contem as credenciais para acessar e usar o GCP)**
+
 ```bash
 cp .env.example .env
 docker compose up --build
