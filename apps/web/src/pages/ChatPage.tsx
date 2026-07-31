@@ -1,4 +1,7 @@
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline"
+import {
+  ChatBubbleLeftRightIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline"
 
 import { ConversationView } from "../components/Chat/ConversationView"
 import { MessageInput } from "../components/Chat/MessageInput"
@@ -11,9 +14,12 @@ export function ChatPage() {
     messages,
     isLoading,
     error,
+    errorType,
     startConversation,
     sendMessage,
   } = useConversation()
+
+  const isAiError = errorType === "ai"
 
   return (
     <AppLayout>
@@ -21,9 +27,19 @@ export function ChatPage() {
         {error && (
           <div
             role="alert"
-            className="mb-4 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm text-ink"
+            className={`mb-4 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${
+              isAiError
+                ? "border-accent/40 bg-accent/10 text-ink"
+                : "border-brand/30 bg-brand/10 text-ink"
+            }`}
           >
-            {error}
+            <ExclamationTriangleIcon
+              className={`mt-0.5 h-5 w-5 shrink-0 ${
+                isAiError ? "text-accent" : "text-brand"
+              }`}
+              aria-hidden="true"
+            />
+            <p>{error}</p>
           </div>
         )}
 

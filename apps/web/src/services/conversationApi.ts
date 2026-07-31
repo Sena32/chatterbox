@@ -1,11 +1,20 @@
 import type { Conversation, Message } from "../types"
 
-// const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"
 const BASE = "/api"
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message)
+    this.name = "ApiError"
+  }
+}
 
 async function handleResponse<T>(res: Response, errorMessage: string): Promise<T> {
   if (!res.ok) {
-    throw new Error(errorMessage)
+    throw new ApiError(errorMessage, res.status)
   }
   return res.json() as Promise<T>
 }

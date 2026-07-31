@@ -14,7 +14,10 @@ python-dotenv==1.0.1
 
 # --- Providers de IA (escolher conforme AI_PROVIDER no .env) ---
 anthropic==0.39.0
+anthropic[vertex]==0.39.0
 # openai==1.54.0   # descomente se usar OpenAI
+requests
+google-genai
 
 # --- Testes ---
 pytest==8.3.3

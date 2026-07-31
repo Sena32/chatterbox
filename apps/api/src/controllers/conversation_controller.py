@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from src.core.dependencies import get_conversation_service
-from src.core.exceptions import ConversationNotFoundError
+from src.core.exceptions import AIUnavailableError, ConversationNotFoundError
 from src.models.conversation import Conversation, Message
 from src.services.conversation_service import ConversationService
 
@@ -52,4 +52,9 @@ async def post_message(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Conversation not found",
+        )
+    except AIUnavailableError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI provider unavailable",
         )

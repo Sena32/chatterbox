@@ -33,6 +33,7 @@ services:
     environment:
       MONGO_URI: mongodb://${MONGO_ROOT_USER:-chatterbox}:${MONGO_ROOT_PASSWORD:-chatterbox}@mongo:27017
       MONGO_DB_NAME: ${MONGO_DB_NAME:-chatterbox}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/google-credentials.json
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:

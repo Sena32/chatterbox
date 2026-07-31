@@ -3,14 +3,24 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from src.core.exceptions import ConversationNotFoundError
+from src.core.exceptions import (
+    AIProviderError,
+    AIUnavailableError,
+    ConversationNotFoundError,
+)
 from src.models.conversation import Conversation, Message
 from src.repositories.conversation_repository import ConversationRepository
+from src.services.ai_service import AIService
 
 
 class ConversationService:
-    def __init__(self, repository: ConversationRepository) -> None:
+    def __init__(
+        self,
+        repository: ConversationRepository,
+        ai_service: AIService,
+    ) -> None:
         self._repository = repository
+        self._ai_service = ai_service
 
     async def start_conversation(self) -> Conversation:
         return await self._repository.create()
@@ -23,14 +33,30 @@ class ConversationService:
         return conversation
 
     async def post_user_message(self, conversation_id: str, content: str) -> Message:
-        message = Message(
+        user_message = Message(
             id=str(uuid4()),
             sender="user",
             content=content,
             created_at=datetime.now(timezone.utc),
         )
         try:
-            await self._repository.add_message(conversation_id, message)
+            conversation = await self._repository.add_message(
+                conversation_id,
+                user_message,
+            )
         except ValueError:
             raise ConversationNotFoundError(conversation_id) from None
-        return message
+
+        try:
+            ai_content = await self._ai_service.reply_to(conversation)
+        except AIProviderError:
+            raise AIUnavailableError(conversation_id) from None
+
+        ai_message = Message(
+            id=str(uuid4()),
+            sender="ai",
+            content=ai_content,
+            created_at=datetime.now(timezone.utc),
+        )
+        await self._repository.add_message(conversation_id, ai_message)
+        return ai_message

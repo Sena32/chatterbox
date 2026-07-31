@@ -1,6 +1,8 @@
 # Env
 .env
 *.local
+/apps/api/google-credentials.json
+
 
 # Python
 __pycache__/
