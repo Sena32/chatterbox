@@ -27,3 +27,16 @@ class AnthropicProvider:
             ],
         )
         return response.content[0].text
+
+    async def generate_reply_stream(
+        self,
+        system_prompt: str,
+        history: list[Message],
+    ):
+        full_text = await self.generate_reply(system_prompt, history)
+        if not full_text:
+            return
+        parts = full_text.split(" ")
+        for index, word in enumerate(parts):
+            chunk = word if index == 0 else f" {word}"
+            yield chunk

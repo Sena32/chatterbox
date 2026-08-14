@@ -1,5 +1,6 @@
 """ConversationService — regras de negócio e orquestração."""
 
+from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -59,4 +60,46 @@ class ConversationService:
             created_at=datetime.now(timezone.utc),
         )
         await self._repository.add_message(conversation_id, ai_message)
+        return ai_message
+
+    async def add_user_message(
+        self, conversation_id: str, content: str
+    ) -> Conversation:
+        user_message = Message(
+            id=str(uuid4()),
+            sender="user",
+            content=content,
+            created_at=datetime.now(timezone.utc),
+        )
+        try:
+            return await self._repository.add_message(conversation_id, user_message)
+        except ValueError:
+            raise ConversationNotFoundError(conversation_id) from None
+
+    async def stream_ai_reply(
+        self, conversation_id: str
+    ) -> AsyncIterator[str]:
+        conversation = await self._repository.get_by_id(conversation_id)
+        if conversation is None:
+            raise ConversationNotFoundError(conversation_id)
+        conversation.messages.sort(key=lambda m: m.created_at)
+        try:
+            async for chunk in self._ai_service.stream_reply_to(conversation):
+                yield chunk
+        except AIProviderError:
+            raise AIUnavailableError(conversation_id) from None
+
+    async def finalize_ai_message(
+        self, conversation_id: str, content: str
+    ) -> Message:
+        ai_message = Message(
+            id=str(uuid4()),
+            sender="ai",
+            content=content,
+            created_at=datetime.now(timezone.utc),
+        )
+        try:
+            await self._repository.add_message(conversation_id, ai_message)
+        except ValueError:
+            raise ConversationNotFoundError(conversation_id) from None
         return ai_message

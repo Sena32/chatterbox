@@ -15,6 +15,8 @@ export function ChatPage() {
     isLoading,
     error,
     errorType,
+    streamingMessage,
+    isStreaming,
     startConversation,
     sendMessage,
   } = useConversation()
@@ -65,10 +67,14 @@ export function ChatPage() {
           </div>
         ) : (
           <>
-            <ConversationView messages={messages} />
+            <ConversationView
+              messages={messages}
+              streamingMessage={streamingMessage}
+              isStreaming={isStreaming}
+            />
             <MessageInput
               onSend={(content) => void sendMessage(content)}
-              isLoading={isLoading}
+              isLoading={isLoading && !isStreaming}
             />
           </>
         )}

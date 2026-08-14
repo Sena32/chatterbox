@@ -2,20 +2,26 @@ import { useEffect, useRef } from "react"
 
 import type { Message } from "../../types"
 import { MessageBubble } from "./MessageBubble"
+import { StreamingMessageBubble } from "./StreamingMessageBubble"
 
 interface Props {
   messages: Message[]
   streamingMessage?: string
+  isStreaming?: boolean
 }
 
-export function ConversationView({ messages, streamingMessage }: Props) {
+export function ConversationView({
+  messages,
+  streamingMessage,
+  isStreaming = false,
+}: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, streamingMessage])
 
-  if (messages.length === 0 && !streamingMessage) {
+  if (messages.length === 0 && !streamingMessage && !isStreaming) {
     return (
       <div
         data-testid="conversation-view"
@@ -37,14 +43,11 @@ export function ConversationView({ messages, streamingMessage }: Props) {
         <MessageBubble key={msg.id} message={msg} />
       ))}
 
-      {streamingMessage && (
-        <div
-          data-testid="streaming-bubble"
-          className="mr-auto max-w-[80%] rounded-2xl bg-surface/30 px-4 py-3 text-ink"
-        >
-          <span className="mb-1 block text-xs font-medium text-accent">IA</span>
-          <p className="text-sm text-ink/80">{streamingMessage}</p>
-        </div>
+      {streamingMessage !== undefined && (streamingMessage || isStreaming) && (
+        <StreamingMessageBubble
+          content={streamingMessage}
+          isStreaming={isStreaming}
+        />
       )}
 
       <div ref={bottomRef} />

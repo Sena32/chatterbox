@@ -25,3 +25,22 @@ async def test_fake_provider_returns_configured_reply():
     assert result == "Resposta fake da IA"
     assert provider.last_system_prompt == "system prompt"
     assert provider.last_history == history
+
+
+@pytest.mark.asyncio
+async def test_fake_provider_generate_reply_stream_yields_configured_chunks():
+    provider = FakeAIProvider(stream_chunks=["Hel", "lo", " world"])
+    history = [
+        Message(
+            id="1",
+            sender="user",
+            content="Oi",
+            created_at=datetime.now(timezone.utc),
+        )
+    ]
+
+    chunks = [chunk async for chunk in provider.generate_reply_stream("sys", history)]
+
+    assert chunks == ["Hel", "lo", " world"]
+    assert provider.last_system_prompt == "sys"
+    assert provider.last_history == history

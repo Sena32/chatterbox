@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 
+import { useChatSocket } from "./useChatSocket"
 import * as conversationApi from "../services/conversationApi"
 import { ApiError } from "../services/conversationApi"
 import type { Conversation, Message } from "../types"
@@ -14,6 +15,8 @@ export interface UseConversationReturn {
   isLoading: boolean
   error: string | null
   errorType: ConversationErrorType | null
+  streamingMessage: string
+  isStreaming: boolean
   startConversation: () => Promise<void>
   sendMessage: (content: string) => Promise<void>
 }
@@ -38,6 +41,22 @@ export function useConversation(): UseConversationReturn {
     },
     [],
   )
+
+  const handleAiMessageDone = useCallback((aiMessage: Message) => {
+    setConversation((prev) => {
+      if (!prev) return prev
+      return { ...prev, messages: [...prev.messages, aiMessage] }
+    })
+  }, [])
+
+  const {
+    streamingMessage,
+    isStreaming,
+    sendMessage: sendViaSocket,
+    isSocketReady,
+  } = useChatSocket(conversation?.id ?? null, {
+    onAiMessageDone: handleAiMessageDone,
+  })
 
   const loadConversation = useCallback(async (id: string) => {
     setIsLoading(true)
@@ -76,11 +95,8 @@ export function useConversation(): UseConversationReturn {
     }
   }, [clearError, setConversationError])
 
-  const sendMessage = useCallback(
-    async (content: string) => {
-      if (!conversation) return
-
-      const conversationId = conversation.id
+  const sendMessageViaRest = useCallback(
+    async (content: string, conversationId: string) => {
       const optimisticUserMessage: Message = {
         id: `pending-${Date.now()}`,
         sender: "user",
@@ -149,7 +165,35 @@ export function useConversation(): UseConversationReturn {
         setIsLoading(false)
       }
     },
-    [conversation, clearError, setConversationError],
+    [clearError, setConversationError],
+  )
+
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!conversation) return
+
+      const conversationId = conversation.id
+
+      if (isSocketReady) {
+        const optimisticUserMessage: Message = {
+          id: `pending-${Date.now()}`,
+          sender: "user",
+          content,
+          created_at: new Date().toISOString(),
+        }
+        setConversation((prev) =>
+          prev
+            ? { ...prev, messages: [...prev.messages, optimisticUserMessage] }
+            : prev,
+        )
+        clearError()
+        sendViaSocket(content)
+        return
+      }
+
+      await sendMessageViaRest(content, conversationId)
+    },
+    [conversation, isSocketReady, sendViaSocket, clearError, sendMessageViaRest],
   )
 
   return {
@@ -158,6 +202,8 @@ export function useConversation(): UseConversationReturn {
     isLoading,
     error,
     errorType,
+    streamingMessage,
+    isStreaming,
     startConversation,
     sendMessage,
   }

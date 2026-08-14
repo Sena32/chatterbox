@@ -38,6 +38,10 @@ a resposta completa para começar a ler.
 4. Se a conexão WS cair, o histórico da conversa continua íntegro e acessível
    via os endpoints REST da spec 001 (o WS é um canal adicional, não o único
    meio de acesso aos dados).
+5. A API deve expor CORS de forma geral (middleware `CORSMiddleware` no
+   FastAPI), permitindo que o frontend (`apps/web`) acesse REST e WebSocket
+   quando rodar em origem diferente da API (ex.: Vite em `:5173`, API em
+   `:8000`), sem depender exclusivamente de proxy reverso.
 
 ## Fora de escopo
 
@@ -46,10 +50,12 @@ a resposta completa para começar a ler.
 
 ## Critérios de aceite
 
-- [ ] Cliente Web consegue abrir uma conexão WS por conversa e receber
+- [x] Cliente Web consegue abrir uma conexão WS por conversa e receber
       eventos de chunk enquanto a IA "digita".
-- [ ] Ao final do streaming, a mensagem completa está persistida no Mongo
+- [x] Ao final do streaming, a mensagem completa está persistida no Mongo
       (idêntica ao que seria salvo no fluxo HTTP da spec 002).
-- [ ] Fechar e reabrir a página, o histórico via REST continua correto.
-- [ ] Hook dedicado no frontend (`useChatSocket`) encapsula toda a lógica de
+- [x] Fechar e reabrir a página, o histórico via REST continua correto.
+- [x] Hook dedicado no frontend (`useChatSocket`) encapsula toda a lógica de
       WebSocket, sem vazar para os componentes de apresentação.
+- [x] CORS habilitado na API para origens de desenvolvimento e produção da
+      POC, cobrindo rotas REST e upgrade WebSocket.

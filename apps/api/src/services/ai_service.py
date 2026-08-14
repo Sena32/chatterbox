@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from typing import Protocol
 
 from src.core.exceptions import AIProviderError
@@ -14,6 +15,12 @@ class AIProvider(Protocol):
         system_prompt: str,
         history: list[Message],
     ) -> str: ...
+
+    async def generate_reply_stream(
+        self,
+        system_prompt: str,
+        history: list[Message],
+    ) -> AsyncIterator[str]: ...
 
 
 class AIService:
@@ -36,4 +43,18 @@ class AIService:
             )
         except Exception as exc:
             print("console error ai service", str(exc))
+            raise AIProviderError(str(exc)) from exc
+
+    async def stream_reply_to(
+        self, conversation: Conversation
+    ) -> AsyncIterator[str]:
+        system_prompt = self._build_system_prompt()
+        try:
+            async for chunk in self._provider.generate_reply_stream(
+                system_prompt,
+                conversation.messages,
+            ):
+                yield chunk
+        except Exception as exc:
+            print("console error ai service stream", str(exc))
             raise AIProviderError(str(exc)) from exc

@@ -58,3 +58,53 @@ async def test_reply_to_propagates_provider_error(
 
     with pytest.raises(AIProviderError, match="API timeout"):
         await ai_service.reply_to(sample_conversation)
+
+
+@pytest.mark.asyncio
+async def test_stream_reply_to_yields_all_provider_chunks(
+    ai_service, mock_provider, sample_conversation
+):
+    async def fake_stream(system_prompt, history):
+        yield "chunk-1"
+        yield "chunk-2"
+
+    mock_provider.generate_reply_stream = fake_stream
+
+    chunks = [
+        chunk async for chunk in ai_service.stream_reply_to(sample_conversation)
+    ]
+
+    assert chunks == ["chunk-1", "chunk-2"]
+
+
+@pytest.mark.asyncio
+async def test_stream_reply_to_includes_system_goal_in_prompt(
+    ai_service, mock_provider, sample_conversation
+):
+    async def fake_stream(system_prompt, history):
+        assert SYSTEM_GOAL in system_prompt
+        assert history == sample_conversation.messages
+        yield "ok"
+
+    mock_provider.generate_reply_stream = fake_stream
+
+    chunks = [
+        chunk async for chunk in ai_service.stream_reply_to(sample_conversation)
+    ]
+
+    assert chunks == ["ok"]
+
+
+@pytest.mark.asyncio
+async def test_stream_reply_to_propagates_provider_error(
+    ai_service, mock_provider, sample_conversation
+):
+    async def failing_stream(system_prompt, history):
+        raise RuntimeError("stream failed")
+        yield ""  # pragma: no cover
+
+    mock_provider.generate_reply_stream = failing_stream
+
+    with pytest.raises(AIProviderError, match="stream failed"):
+        async for _ in ai_service.stream_reply_to(sample_conversation):
+            pass

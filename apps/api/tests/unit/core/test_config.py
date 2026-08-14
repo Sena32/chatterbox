@@ -37,3 +37,18 @@ def test_settings_reads_env_vars(monkeypatch):
     assert settings.ai_api_key == "test-key"
     assert settings.ai_model == "test-model"
     assert settings.ai_system_goal == "Objetivo de teste"
+
+
+def test_settings_parses_cors_origins_list(monkeypatch):
+    monkeypatch.setenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173, http://127.0.0.1:5173 ,http://example.com",
+    )
+
+    settings = Settings(_env_file=None)
+
+    assert settings.cors_origins_list == [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://example.com",
+    ]

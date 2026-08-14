@@ -16,9 +16,10 @@
 - Delega para `ConversationService`, que por sua vez usa uma variante
   streaming do `AIService` (`AIService.stream_reply_to`), emitindo callback
   a cada chunk recebido do provedor.
-- `AIProvider` ganha um método opcional `generate_reply_stream` (async
-  generator). Provedores que não suportam streaming nativo podem "emular"
-  quebrando a resposta completa em pedaços (apenas para a POC).
+- `AIProvider` ganha um método `generate_reply_stream` (async generator).
+  A implementação de produção usa `GeminiProvider` (Vertex AI / Google GenAI);
+  provedores que não suportam streaming nativo emulam chunking da resposta
+  completa (suficiente para a POC).
 
 ### Reuso de camadas
 
@@ -27,6 +28,17 @@
   callback de streaming a mais. O controller HTTP (REST) continua existindo
   e funcionando normalmente (fallback sem streaming).
 
+### CORS (infra transversal)
+
+- Registrar `CORSMiddleware` em `apps/api/src/main.py` com origens
+  configuráveis via `core/config.py` (ex.: `http://localhost:5173` em dev).
+- Objetivo: frontend e API em origens distintas conseguirem REST **e**
+  WebSocket sem bloqueio de preflight/CORS — complementar ao proxy do Vite,
+  não substituto obrigatório em produção.
+- WebSocket: o middleware CORS do Starlette/FastAPI cobre o handshake HTTP
+  de upgrade; manter `allow_credentials=True` apenas se a POC passar cookies
+  (não é o caso hoje).
+
 ## Frontend
 
 ### `services/chatSocket.ts`
@@ -34,6 +46,20 @@
 - Wrapper fino sobre `WebSocket` nativo: `connect(conversationId)`,
   `onChunk(cb)`, `onDone(cb)`, `onError(cb)`, `sendMessage(content)`,
   `disconnect()`. Sem JSX, sem estado React.
+- URL do WS: preferir mesma origem via proxy Vite (`/ws/...`) **ou**
+  `VITE_WS_BASE_URL` apontando direto para a API quando CORS estiver
+  habilitado (task T11).
+
+### Ciclo de vida do `useChatSocket`
+
+- `useConversation` chama `useChatSocket(conversation?.id ?? null)`.
+- Enquanto `conversation` for `null` (antes de "Iniciar conversa"), o
+  `useEffect` **executa**, mas retorna cedo — não abre socket (comportamento
+  esperado).
+- Após `setConversation(data)`, `conversationId` muda → `useEffect`
+  reexecuta e chama `createChatSocket`.
+- `isSocketReady` só fica `true` após evento `open` do WebSocket; enviar
+  mensagem antes disso cai no fallback REST (T10).
 
 ### `hooks/useChatSocket.ts`
 

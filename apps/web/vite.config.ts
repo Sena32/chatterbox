@@ -1,10 +1,16 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
-const API_BASE_URL = process.env.API_INTERNAL_URL  ?? "http://api:8000"
+const API_BASE_URL = process.env.API_INTERNAL_URL ?? "http://api:8000"
 
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/test/setup.ts"],
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,
@@ -14,6 +20,11 @@ export default defineConfig({
         target: API_BASE_URL,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+      "/ws": {
+        target: API_BASE_URL,
+        changeOrigin: true,
+        ws: true,
       },
     },
   },

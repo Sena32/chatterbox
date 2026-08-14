@@ -119,3 +119,75 @@ async def test_post_user_message_keeps_user_message_when_ai_fails(
     user_message = mock_repository.add_message.call_args[0][1]
     assert user_message.sender == "user"
     assert user_message.content == "Olá"
+
+
+@pytest.mark.asyncio
+async def test_add_user_message_persists_user_only(
+    service, mock_repository, mock_ai_service
+):
+    conversation_id = "507f1f77bcf86cd799439011"
+    now = datetime.now(timezone.utc)
+    user_message = Message(
+        id="user-1", sender="user", content="Olá", created_at=now
+    )
+    updated = Conversation(id=conversation_id, created_at=now, messages=[user_message])
+    mock_repository.add_message.return_value = updated
+
+    result = await service.add_user_message(conversation_id, "Olá")
+
+    mock_repository.add_message.assert_awaited_once()
+    mock_ai_service.reply_to.assert_not_called()
+    assert result == updated
+
+
+@pytest.mark.asyncio
+async def test_stream_ai_reply_yields_chunks_from_ai_service(
+    service, mock_repository, mock_ai_service
+):
+    conversation_id = "507f1f77bcf86cd799439011"
+    now = datetime.now(timezone.utc)
+    conversation = Conversation(
+        id=conversation_id,
+        created_at=now,
+        messages=[
+            Message(id="1", sender="user", content="Oi", created_at=now),
+        ],
+    )
+    mock_repository.get_by_id.return_value = conversation
+
+    async def fake_stream(conv):
+        yield "A"
+        yield "B"
+
+    mock_ai_service.stream_reply_to = fake_stream
+
+    chunks = [c async for c in service.stream_ai_reply(conversation_id)]
+
+    assert chunks == ["A", "B"]
+    mock_repository.get_by_id.assert_awaited_once_with(conversation_id)
+
+
+@pytest.mark.asyncio
+async def test_finalize_ai_message_persists_ai_message(
+    service, mock_repository, mock_ai_service
+):
+    conversation_id = "507f1f77bcf86cd799439011"
+    now = datetime.now(timezone.utc)
+    ai_message = Message(
+        id="ai-1", sender="ai", content="Resposta completa", created_at=now
+    )
+    mock_repository.add_message.return_value = Conversation(
+        id=conversation_id,
+        created_at=now,
+        messages=[ai_message],
+    )
+
+    result = await service.finalize_ai_message(
+        conversation_id, "Resposta completa"
+    )
+
+    mock_repository.add_message.assert_awaited_once()
+    saved = mock_repository.add_message.call_args[0][1]
+    assert saved.sender == "ai"
+    assert saved.content == "Resposta completa"
+    assert result.content == "Resposta completa"

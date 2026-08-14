@@ -166,11 +166,11 @@ export function useChatSocket(conversationId: string | null) {
 
 ## Checklist de implementação
 
-- [ ] `ConnectionManager` testado isoladamente (unit).
-- [ ] `AIService` tem `stream_reply_to` como async generator.
-- [ ] Mensagem completa da IA é persistida no Mongo **uma vez** ao final
+- [x] `ConnectionManager` testado isoladamente (unit).
+- [x] `AIService` tem `stream_reply_to` como async generator.
+- [x] Mensagem completa da IA é persistida no Mongo **uma vez** ao final
       do streaming (não a cada chunk).
-- [ ] Se WS não conectar, os endpoints REST da spec 001/002 continuam
+- [x] Se WS não conectar, os endpoints REST da spec 001/002 continuam
       funcionando (degradação suave).
-- [ ] `chatSocket.ts` não importa React.
-- [ ] `useChatSocket` não faz queries Mongo nem fetch HTTP direto.
+- [x] `chatSocket.ts` não importa React.
+- [x] `useChatSocket` não faz queries Mongo nem fetch HTTP direto.

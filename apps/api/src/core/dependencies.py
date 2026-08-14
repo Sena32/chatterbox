@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, Request
+from fastapi import Depends, Request, WebSocket
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from src.core.config import settings
@@ -14,8 +14,16 @@ from src.services.providers.gemini_provider import GeminiProvider
 from src.services.providers.fake_provider import FakeAIProvider
 
 
-def get_db(request: Request) -> AsyncIOMotorDatabase:
-    return request.app.state.db
+def get_db(request: Request = None, websocket: WebSocket = None) -> AsyncIOMotorDatabase:
+    """
+    Dependência universal para Motor DB que extrai o estado 
+    tanto de requisições HTTP quanto de conexões WebSocket.
+    """
+    ctx = request or websocket
+    if not ctx:
+        raise RuntimeError("Nenhum contexto HTTP ou WebSocket foi fornecido para a dependência get_db.")
+        
+    return ctx.app.state.db
 
 
 def get_conversation_repository(

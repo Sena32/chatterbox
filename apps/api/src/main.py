@@ -3,10 +3,12 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from src.controllers.conversation_controller import router as conversation_router
 from src.core.config import settings
+from src.websocket.chat_ws_controller import router as websocket_router
 
 
 @asynccontextmanager
@@ -25,11 +27,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(
     conversation_router,
     prefix="/conversations",
     tags=["conversations"],
 )
+app.include_router(websocket_router)
 
 
 @app.get("/health", tags=["infra"])
